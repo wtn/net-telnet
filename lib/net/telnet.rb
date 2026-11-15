@@ -221,8 +221,10 @@ module Net
     #            format (16 bytes per line as hex pairs, followed by their
     #            printable equivalent), with connection status messages
     #            preceded by '#', sent traffic preceded by '>', and
-    #            received traffic preceded by '<'.  By default, not dump log
-    #            is kept.
+    #            received traffic preceded by '<'.  Sent traffic includes
+    #            the password given to #login(), so a new dump log file is
+    #            created readable only by its owner.  By default, no dump
+    #            log is kept.
     #
     # Prompt:: a regular expression matching the host's command-line prompt
     #          sequence.  This is needed by the Telnet class to determine
@@ -301,7 +303,7 @@ module Net
       end
 
       if @options.has_key?("Dump_log")
-        @dumplog = File.open(@options["Dump_log"], 'a+')
+        @dumplog = File.open(@options["Dump_log"], 'a+', 0600)
         @dumplog.sync = true
         @dumplog.binmode
         def @dumplog.log_dump(dir, x)  # :nodoc:
