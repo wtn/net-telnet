@@ -19,12 +19,11 @@ module Net
   #
   # Provides telnet client functionality.
   #
-  # This class also has, through delegation, all the methods of a
-  # socket object (by default, a +TCPSocket+, but can be set by the
-  # +Proxy+ option to <tt>new()</tt>).  This provides methods such as
-  # <tt>close()</tt> to end the session and <tt>sysread()</tt> to read
+  # The underlying socket object (by default, a +TCPSocket+, but can be
+  # set by the +Proxy+ option to <tt>new()</tt>) is available through
+  # #sock.  Use it to call methods such as <tt>sysread()</tt> to read
   # data directly from the host, instead of via the <tt>waitfor()</tt>
-  # mechanism.  Note that if you do use <tt>sysread()</tt> directly
+  # mechanism.  Note that if you do use <tt>sock.sysread()</tt> directly
   # when in telnet mode, you should probably pass the output through
   # <tt>preprocess()</tt> to extract telnet command sequences.
   #
@@ -52,7 +51,7 @@ module Net
   # for others, you will have to specify the response sequence to
   # look for as the Match option to every #cmd() call, or call
   # #puts() and #waitfor() directly; for yet others, you will have
-  # to use #sysread() instead of #waitfor() and parse server
+  # to use <tt>sock.sysread()</tt> instead of #waitfor() and parse server
   # responses yourself.
   #
   # It is worth noting that when you create a new Net::Telnet object,
@@ -368,9 +367,7 @@ module Net
 
     end # initialize
 
-    # The socket the Telnet object is using.  Note that this object becomes
-    # a delegate of the Telnet object, so normally you invoke its methods
-    # directly on the Telnet object.
+    # The socket the Telnet object is using.
     attr_reader :sock
 
     # Set telnet command interpretation on (+mode+ == true) or off
