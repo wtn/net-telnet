@@ -24,6 +24,13 @@ class FakeTelnetSocket
     @written = "".b
   end
 
+  def sync=(value)
+  end
+
+  def binmode
+    self
+  end
+
   def kind_of?(klass)
     klass == IO || super
   end

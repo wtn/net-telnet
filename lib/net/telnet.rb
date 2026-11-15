@@ -336,17 +336,17 @@ module Net
           raise "Error: Proxy must be an instance of Net::Telnet or IO."
         end
       else
-        message = "Trying " + @options["Host"] + "...\n"
+        message = "Trying #{@options["Host"]}...\n"
         yield(message) if block_given?
         @log.write(message) if @options.has_key?("Output_log")
         @dumplog.log_dump('#', message) if @options.has_key?("Dump_log")
 
         begin
           if @options["Timeout"] == false
-            @sock = TCPSocket.open(@options["Host"], @options["Port"])
+            @sock = TCPSocket.open(@options["Host"].to_s, @options["Port"])
           else
             Timeout.timeout(@options["Timeout"], Net::OpenTimeout) do
-              @sock = TCPSocket.open(@options["Host"], @options["Port"])
+              @sock = TCPSocket.open(@options["Host"].to_s, @options["Port"])
             end
           end
         rescue Net::OpenTimeout
@@ -359,7 +359,7 @@ module Net
         @sock.sync = true
         @sock.binmode
 
-        message = "Connected to " + @options["Host"] + ".\n"
+        message = "Connected to #{@options["Host"]}.\n"
         yield(message) if block_given?
         @log.write(message) if @options.has_key?("Output_log")
         @dumplog.log_dump('#', message) if @options.has_key?("Dump_log")
