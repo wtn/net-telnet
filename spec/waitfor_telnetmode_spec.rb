@@ -55,6 +55,16 @@ describe "Net::Telnet#waitfor with default options" do
     telnet_with(socket).waitfor("String" => "$5 (ok)").should == "cost: $5 (ok)"
   end
 
+  it "raises ArgumentError when the hash has no Match, Prompt or String" do
+    socket = FakeTelnetSocket.new("x$ ")
+    lambda { telnet_with(socket).waitfor("Timeout" => 1) }.should raise_error(ArgumentError)
+  end
+
+  it "raises ArgumentError when passed nil" do
+    socket = FakeTelnetSocket.new("x$ ")
+    lambda { telnet_with(socket).waitfor(nil) }.should raise_error(ArgumentError)
+  end
+
   it "yields the data as it is received" do
     socket = FakeTelnetSocket.new("ab", "c$ ")
     yielded = []

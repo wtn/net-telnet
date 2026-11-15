@@ -542,6 +542,10 @@ module Net
         prompt = options
       end
 
+      if prompt.nil?
+        raise ArgumentError, "Match, Prompt or String must be given"
+      end
+
       if time_out == false
         time_out = nil
       end
