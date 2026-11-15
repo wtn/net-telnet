@@ -88,4 +88,8 @@ describe "Net::Telnet#preprocess with default options" do
   it "removes a subnegotiation" do
     @telnet.preprocess("a\xff\xfa\x18\x01\xff\xf0b").should == "ab"
   end
+
+  it "removes a subnegotiation that contains an escaped IAC" do
+    @telnet.preprocess("a\xff\xfa\x18\xff\xff\x01\xff\xf0b").should == "ab"
+  end
 end
