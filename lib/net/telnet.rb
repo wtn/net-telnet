@@ -572,7 +572,7 @@ module Net
             if sb and (se.nil? or se < sb)
               buf = preprocess(c[0 ... sb])
               rest = c[sb .. -1]
-            elsif pt = c.rindex(/#{IAC}[^#{IAC}#{AO}#{AYT}#{DM}#{IP}#{NOP}]?\z/no) ||
+            elsif pt = c.rindex(/#{IAC}[#{DO}#{DONT}#{WILL}#{WONT}]?\z/no) ||
                        c.rindex(/\r\z/no)
               buf = preprocess(c[0 ... pt])
               rest = c[pt .. -1]

@@ -18,6 +18,7 @@ describe "Net::Telnet#waitfor with default options" do
     ["a\xff\xf9b$ ", "ab$ ", ""],
     ["a\xff\xfd\x18b$ ", "ab$ ", "\xff\xfc\x18"],
     ["a\xff\xfb\x01b$ ", "ab$ ", "\xff\xfd\x01"],
+    ["a\xff\xfa\x18\x01\xff\xf0b$ ", "ab$ ", ""],
   ].each do |stream, data, replies|
     it "handles #{stream.inspect} the same way at every split point" do
       failures = (1...stream.bytesize).map do |i|
