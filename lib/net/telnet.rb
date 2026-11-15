@@ -162,6 +162,10 @@ module Net
     LF   = "\012"
     EOL  = CR + LF
     REVISION = '$Id$'
+
+    # Longest unfinished subnegotiation #waitfor() will hold while
+    # waiting for IAC SE.
+    MAX_SUBNEGOTIATION = 64 * 1024
     # :startdoc:
 
     #
@@ -528,6 +532,10 @@ module Net
     #           behaviour that the function will return whatever data
     #           has been received already, or nil if nothing was received.
     #
+    # In telnet mode, raises Net::ProtoSyntaxError if the host starts a
+    # subnegotiation and sends more than MAX_SUBNEGOTIATION bytes without
+    # ending it.
+    #
     def waitfor(options) # :yield: recvdata
       time_out = @options["Timeout"]
       waittime = @options["Waittime"]
@@ -575,6 +583,11 @@ module Net
             if sb and (se.nil? or se < sb)
               buf = preprocess(c[0 ... sb])
               @rest = c[sb .. -1]
+              if @rest.bytesize > MAX_SUBNEGOTIATION
+                @rest = ''
+                raise Net::ProtoSyntaxError,
+                      "subnegotiation longer than #{MAX_SUBNEGOTIATION} bytes"
+              end
             elsif pt = (iac && iac.begin(0)) || c.rindex(/\r\z/no)
               buf = preprocess(c[0 ... pt])
               @rest = c[pt .. -1]

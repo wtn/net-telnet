@@ -40,6 +40,18 @@ describe "Net::Telnet#waitfor with default options" do
     receive(["abc\xff\xfa\x18", "\x01", "\xff\xf0x$ "]).should == ["abcx$ ", ""]
   end
 
+  it "raises Net::ProtoSyntaxError when a subnegotiation never ends" do
+    chunk = "A" * 4096
+    chunks = ["x\xff\xfa\x18"] + [chunk] * (Net::Telnet::MAX_SUBNEGOTIATION / chunk.size + 1)
+    socket = FakeTelnetSocket.new(*chunks)
+    lambda { telnet_with(socket).waitfor(/\$ \z/n) }.should raise_error(Net::ProtoSyntaxError)
+  end
+
+  it "removes a long subnegotiation within the limit" do
+    sb = "\xff\xfa\x18" + "A" * 1000 + "\xff\xf0"
+    receive(["x", sb[0, 500], sb[500..-1] + "$ "]).should == ["x$ ", ""]
+  end
+
   it "keeps a telnet command split across two waitfor calls" do
     socket = FakeTelnetSocket.new("login: \xff\xfd")
     telnet = telnet_with(socket)
