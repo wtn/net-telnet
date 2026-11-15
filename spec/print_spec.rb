@@ -52,6 +52,13 @@ describe "Net::Telnet#print with default options" do
     @telnet.print("ls\n")
     @socket.written.should == "ls\r"
   end
+
+  it "stops sending a newline as CR after the host revokes BINARY" do
+    @telnet.preprocess("\xff\xfb\x03\xff\xfd\x00\xff\xfe\x00")
+    @socket.clear
+    @telnet.print("ls\n")
+    @socket.written.should == "ls\r\0"
+  end
 end
 
 describe "Net::Telnet#puts with default options" do

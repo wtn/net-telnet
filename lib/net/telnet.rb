@@ -167,6 +167,12 @@ module Net
     # waiting for IAC SE.
     MAX_SUBNEGOTIATION = 64 * 1024
 
+    # Options the host may enable, and the @telnet_option key for each
+    REMOTE_OPTION = {
+      OPT_BINARY => "REMOTE_BINARY", OPT_ECHO => "ECHO", OPT_SGA => "SGA",
+    }.freeze
+    private_constant :REMOTE_OPTION
+
     # TCPSocket.open accepts open_timeout: from Ruby 4.0
     OPEN_TIMEOUT_SUPPORTED = RUBY_VERSION.split(".").first.to_i >= 4 # :nodoc:
     # :startdoc:
@@ -301,7 +307,8 @@ module Net
         end
       end
 
-      @telnet_option = { "SGA" => false, "BINARY" => false }
+      @telnet_option = { "SGA" => false, "BINARY" => false,
+                         "ECHO" => false, "REMOTE_BINARY" => false }
       @rest = ''
 
       if @options.has_key?("Output_log")
@@ -457,34 +464,35 @@ module Net
           ''
         elsif DO[0] == $1[0]  # respond to "IAC DO x"
           if OPT_BINARY[0] == $1[1]
-            @telnet_option["BINARY"] = true
-            self.write(IAC + WILL + OPT_BINARY)
+            unless @telnet_option["BINARY"]
+              @telnet_option["BINARY"] = true
+              self.write(IAC + WILL + OPT_BINARY)
+            end
           else
             self.write(IAC + WONT + $1[1..1])
           end
           ''
-        elsif DONT[0] == $1[0]  # respond to "IAC DON'T x" with "IAC WON'T x"
-          self.write(IAC + WONT + $1[1..1])
+        elsif DONT[0] == $1[0]  # respond to "IAC DON'T x" only if x is enabled
+          if OPT_BINARY[0] == $1[1] and @telnet_option["BINARY"]
+            @telnet_option["BINARY"] = false
+            self.write(IAC + WONT + OPT_BINARY)
+          end
           ''
         elsif WILL[0] == $1[0]  # respond to "IAC WILL x"
-          if    OPT_BINARY[0] == $1[1]
-            self.write(IAC + DO + OPT_BINARY)
-          elsif OPT_ECHO[0] == $1[1]
-            self.write(IAC + DO + OPT_ECHO)
-          elsif OPT_SGA[0]  == $1[1]
-            @telnet_option["SGA"] = true
-            self.write(IAC + DO + OPT_SGA)
+          key = REMOTE_OPTION[$1[1]]
+          if key
+            unless @telnet_option[key]
+              @telnet_option[key] = true
+              self.write(IAC + DO + $1[1..1])
+            end
           else
             self.write(IAC + DONT + $1[1..1])
           end
           ''
-        elsif WONT[0] == $1[0]  # respond to "IAC WON'T x"
-          if    OPT_ECHO[0] == $1[1]
-            self.write(IAC + DONT + OPT_ECHO)
-          elsif OPT_SGA[0]  == $1[1]
-            @telnet_option["SGA"] = false
-            self.write(IAC + DONT + OPT_SGA)
-          else
+        elsif WONT[0] == $1[0]  # respond to "IAC WON'T x" only if x is enabled
+          key = REMOTE_OPTION[$1[1]]
+          if key and @telnet_option[key]
+            @telnet_option[key] = false
             self.write(IAC + DONT + $1[1..1])
           end
           ''

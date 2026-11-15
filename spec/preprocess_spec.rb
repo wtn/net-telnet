@@ -90,6 +90,50 @@ describe "Net::Telnet#preprocess with default options" do
     @socket.written.should == "\xff\xfe\x03"
   end
 
+  it "does not answer IAC DONT for an option that is already off" do
+    @telnet.preprocess("\xff\xfe\x18\xff\xfe\x00").should == ""
+    @socket.written.should == ""
+  end
+
+  it "does not answer IAC WONT for an option that is already off" do
+    @telnet.preprocess("\xff\xfc\x18\xff\xfc\x01\xff\xfc\x03").should == ""
+    @socket.written.should == ""
+  end
+
+  it "answers a repeated IAC WILL ECHO only once" do
+    @telnet.preprocess("\xff\xfb\x01\xff\xfb\x01").should == ""
+    @socket.written.should == "\xff\xfd\x01"
+  end
+
+  it "answers a repeated IAC WILL BINARY only once" do
+    @telnet.preprocess("\xff\xfb\x00\xff\xfb\x00").should == ""
+    @socket.written.should == "\xff\xfd\x00"
+  end
+
+  it "answers a repeated IAC DO BINARY only once" do
+    @telnet.preprocess("\xff\xfd\x00\xff\xfd\x00").should == ""
+    @socket.written.should == "\xff\xfb\x00"
+  end
+
+  it "refuses each IAC DO for an unsupported option" do
+    @telnet.preprocess("\xff\xfd\x18\xff\xfd\x18").should == ""
+    @socket.written.should == "\xff\xfc\x18\xff\xfc\x18"
+  end
+
+  it "answers IAC WONT ECHO with IAC DONT ECHO after ECHO was enabled" do
+    @telnet.preprocess("\xff\xfb\x01")
+    @socket.clear
+    @telnet.preprocess("\xff\xfc\x01").should == ""
+    @socket.written.should == "\xff\xfe\x01"
+  end
+
+  it "answers IAC DONT BINARY with IAC WONT BINARY after BINARY was enabled" do
+    @telnet.preprocess("\xff\xfd\x00")
+    @socket.clear
+    @telnet.preprocess("\xff\xfe\x00").should == ""
+    @socket.written.should == "\xff\xfc\x00"
+  end
+
   it "removes a subnegotiation" do
     @telnet.preprocess("a\xff\xfa\x18\x01\xff\xf0b").should == "ab"
   end
