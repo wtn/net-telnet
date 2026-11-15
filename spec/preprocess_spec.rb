@@ -39,7 +39,9 @@ describe "Net::Telnet#preprocess with default options" do
   end
 
   {
-    "NOP" => "\xf1", "DM" => "\xf2", "IP" => "\xf4", "AO" => "\xf5",
+    "NOP" => "\xf1", "DM" => "\xf2", "BRK" => "\xf3", "IP" => "\xf4",
+    "AO" => "\xf5", "EC" => "\xf7", "EL" => "\xf8", "GA" => "\xf9",
+    "EOR" => "\xef", "ABORT" => "\xee", "SUSP" => "\xed", "EOF" => "\xec",
   }.each do |name, byte|
     it "removes IAC #{name} from the data" do
       @telnet.preprocess("a\xff#{byte}b").should == "ab"

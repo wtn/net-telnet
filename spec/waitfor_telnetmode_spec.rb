@@ -15,6 +15,7 @@ describe "Net::Telnet#waitfor with default options" do
     ["a\r\nb$ ", "a\nb$ ", ""],
     ["a\r\0b$ ", "a\rb$ ", ""],
     ["a\xff\xf1b$ ", "ab$ ", ""],
+    ["a\xff\xf9b$ ", "ab$ ", ""],
     ["a\xff\xfd\x18b$ ", "ab$ ", "\xff\xfc\x18"],
     ["a\xff\xfb\x01b$ ", "ab$ ", "\xff\xfd\x01"],
   ].each do |stream, data, replies|
