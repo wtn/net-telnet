@@ -55,7 +55,8 @@ describe "Net::Telnet#preprocess with default options" do
   end
 
   {
-    "ECHO" => 1, "SGA" => 3, "TTYPE" => 24, "NAWS" => 31, "NEW-ENVIRON" => 39,
+    "ECHO" => 1, "SGA" => 3, "TTYPE" => 24, "NAWS" => 31,
+    "NEW-ENVIRON" => 39, "COM-PORT" => 44, "option 200" => 200,
   }.each do |name, code|
     it "answers IAC DO #{name} with IAC WONT #{name}" do
       @telnet.preprocess("a\xff\xfd#{code.chr}b").should == "ab"
@@ -70,7 +71,7 @@ describe "Net::Telnet#preprocess with default options" do
     end
   end
 
-  { "TTYPE" => 24 }.each do |name, code|
+  { "TTYPE" => 24, "COM-PORT" => 44, "option 200" => 200 }.each do |name, code|
     it "answers IAC WILL #{name} with IAC DONT #{name}" do
       @telnet.preprocess("a\xff\xfb#{code.chr}b").should == "ab"
       @socket.written.should == "\xff\xfe#{code.chr}"

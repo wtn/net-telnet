@@ -441,7 +441,7 @@ module Net
                    [#{IAC}#{AO}#{AYT}#{DM}#{IP}#{NOP}]|
                    [#{GA}#{EL}#{EC}#{BREAK}#{EOR}#{ABORT}#{SUSP}#{EOF}]|
                    [#{DO}#{DONT}#{WILL}#{WONT}]
-                     [#{OPT_BINARY}-#{OPT_NEW_ENVIRON}#{OPT_EXOPL}]|
+                     [#{OPT_BINARY}-#{OPT_EXOPL}]|
                    #{SB}[^#{IAC}]*#{IAC}#{SE}
                  )/xno) do
         if    IAC == $1  # handle escaped IAC characters
