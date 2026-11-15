@@ -32,6 +32,10 @@ describe "Net::Telnet#waitfor with default options" do
     end
   end
 
+  it "removes a subnegotiation that arrives in several chunks" do
+    receive(["abc\xff\xfa\x18", "\x01", "\xff\xf0x$ "]).should == ["abcx$ ", ""]
+  end
+
   it "returns nil and yields nil at EOF when no data was received" do
     socket = FakeTelnetSocket.new(:eof)
     yielded = []
