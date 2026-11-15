@@ -638,14 +638,21 @@ module Net
       else
         if @telnet_option["BINARY"] and @telnet_option["SGA"]
           # IAC WILL SGA IAC DO BIN send EOL --> CR
-          self.write(string.gsub(/\n/n, CR))
+          newline = CR
         elsif @telnet_option["SGA"]
           # IAC WILL SGA send EOL --> CR+NULL
-          self.write(string.gsub(/\n/n, CR + NULL))
+          newline = CR + NULL
         else
           # NONE send EOL --> CR+LF
-          self.write(string.gsub(/\n/n, EOL))
+          newline = EOL
         end
+        # a bare CR is sent as CR+NULL in telnet mode (RFC 854)
+        if @options["Telnetmode"] and not @telnet_option["BINARY"]
+          cr = CR + NULL
+        else
+          cr = CR
+        end
+        self.write(string.gsub(/#{EOL}|#{CR}|#{LF}/no) { |m| m == CR ? cr : newline })
       end
     end
 
