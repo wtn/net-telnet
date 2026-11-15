@@ -17,6 +17,11 @@ describe "Net::Telnet#print with default options" do
     @socket.written.should == "a\xff\xffb"
   end
 
+  it "sends a UTF-8 string as its bytes" do
+    @telnet.print("caf\xc3\xa9\n".force_encoding("UTF-8"))
+    @socket.written.should == "caf\xc3\xa9\r\n"
+  end
+
   it "sends a newline as CR NUL after the host enables SGA" do
     @telnet.preprocess("\xff\xfb\x03")
     @socket.clear
@@ -37,5 +42,11 @@ describe "Net::Telnet#puts with default options" do
     socket = FakeTelnetSocket.new
     telnet_with(socket).puts("ls")
     socket.written.should == "ls\r\n"
+  end
+
+  it "sends a UTF-8 string as its bytes" do
+    socket = FakeTelnetSocket.new
+    telnet_with(socket).puts("caf\xc3\xa9".force_encoding("UTF-8"))
+    socket.written.should == "caf\xc3\xa9\r\n"
   end
 end

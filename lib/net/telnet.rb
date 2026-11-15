@@ -629,6 +629,7 @@ module Net
     # depending upon the values of telnetmode, binmode, and telnet options
     # set by the host.
     def print(string)
+      string = string.b
       string = string.gsub(/#{IAC}/no, IAC + IAC) if @options["Telnetmode"]
 
       if @options["Binmode"]
