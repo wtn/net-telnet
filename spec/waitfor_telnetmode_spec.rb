@@ -14,6 +14,9 @@ describe "Net::Telnet#waitfor with default options" do
   [
     ["a\r\nb$ ", "a\nb$ ", ""],
     ["a\r\0b$ ", "a\rb$ ", ""],
+    ["a\xff\xffb$ ", "a\xffb$ ", ""],
+    ["a\xff\xff\xfbb$ ", "a\xff\xfbb$ ", ""],
+    ["a\xff\xff\xff\xfd\x18b$ ", "a\xffb$ ", "\xff\xfc\x18"],
     ["a\xff\xf1b$ ", "ab$ ", ""],
     ["a\xff\xf9b$ ", "ab$ ", ""],
     ["a\xff\xfd\x18b$ ", "ab$ ", "\xff\xfc\x18"],

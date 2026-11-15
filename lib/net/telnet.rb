@@ -569,11 +569,13 @@ module Net
             c = rest + c
             sb = c.rindex(/#{IAC}#{SB}/no)
             se = c.rindex(/#{IAC}#{SE}/no)
+            # a trailing IAC that is not the second half of an IAC IAC
+            iac = c.match(/(?<!#{IAC})(?:#{IAC}#{IAC})*\K
+                           #{IAC}[#{DO}#{DONT}#{WILL}#{WONT}]?\z/xno)
             if sb and (se.nil? or se < sb)
               buf = preprocess(c[0 ... sb])
               rest = c[sb .. -1]
-            elsif pt = c.rindex(/#{IAC}[#{DO}#{DONT}#{WILL}#{WONT}]?\z/no) ||
-                       c.rindex(/\r\z/no)
+            elsif pt = (iac && iac.begin(0)) || c.rindex(/\r\z/no)
               buf = preprocess(c[0 ... pt])
               rest = c[pt .. -1]
             else
