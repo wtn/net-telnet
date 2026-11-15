@@ -13,4 +13,10 @@ describe "Net::Telnet#write" do
     telnet_with(socket).write("abcdefg")
     socket.written.should == "abcdefg"
   end
+
+  it "sends the whole UTF-8 string when the socket accepts a few bytes at a time" do
+    socket = FakeTelnetSocket.new(max_write: 2)
+    telnet_with(socket).write("\xc3\xa9\xc3\xa9a".force_encoding("UTF-8"))
+    socket.written.should == "\xc3\xa9\xc3\xa9a"
+  end
 end
