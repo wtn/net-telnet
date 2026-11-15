@@ -23,6 +23,13 @@ describe "Net::Telnet#print with default options" do
     @telnet.print("ls\n")
     @socket.written.should == "ls\r\0"
   end
+
+  it "sends a newline as CR after the host enables SGA and requests BINARY" do
+    @telnet.preprocess("\xff\xfb\x03\xff\xfd\x00")
+    @socket.clear
+    @telnet.print("ls\n")
+    @socket.written.should == "ls\r"
+  end
 end
 
 describe "Net::Telnet#puts with default options" do

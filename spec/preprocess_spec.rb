@@ -54,6 +54,11 @@ describe "Net::Telnet#preprocess with default options" do
     @socket.written.should_not == ""
   end
 
+  it "answers IAC DO BINARY with IAC WILL BINARY" do
+    @telnet.preprocess("\xff\xfd\x00").should == ""
+    @socket.written.should == "\xff\xfb\x00"
+  end
+
   {
     "ECHO" => 1, "SGA" => 3, "TTYPE" => 24, "NAWS" => 31,
     "NEW-ENVIRON" => 39, "COM-PORT" => 44, "option 200" => 200,
@@ -64,7 +69,7 @@ describe "Net::Telnet#preprocess with default options" do
     end
   end
 
-  { "ECHO" => 1, "SGA" => 3 }.each do |name, code|
+  { "BINARY" => 0, "ECHO" => 1, "SGA" => 3 }.each do |name, code|
     it "answers IAC WILL #{name} with IAC DO #{name}" do
       @telnet.preprocess("\xff\xfb#{code.chr}").should == ""
       @socket.written.should == "\xff\xfd#{code.chr}"
