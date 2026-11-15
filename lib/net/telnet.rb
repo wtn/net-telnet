@@ -166,6 +166,9 @@ module Net
     # Longest unfinished subnegotiation #waitfor() will hold while
     # waiting for IAC SE.
     MAX_SUBNEGOTIATION = 64 * 1024
+
+    # TCPSocket.open accepts open_timeout: from Ruby 4.0
+    OPEN_TIMEOUT_SUPPORTED = RUBY_VERSION.split(".").first.to_i >= 4 # :nodoc:
     # :startdoc:
 
     #
@@ -351,6 +354,13 @@ module Net
         begin
           if @options["Timeout"] == false
             @sock = TCPSocket.open(@options["Host"].to_s, @options["Port"])
+          elsif OPEN_TIMEOUT_SUPPORTED
+            begin
+              @sock = TCPSocket.open(@options["Host"].to_s, @options["Port"],
+                                     open_timeout: @options["Timeout"])
+            rescue IO::TimeoutError
+              raise Net::OpenTimeout
+            end
           else
             Timeout.timeout(@options["Timeout"], Net::OpenTimeout) do
               @sock = TCPSocket.open(@options["Host"].to_s, @options["Port"])
