@@ -579,8 +579,8 @@ module Net
             rest = ''
             unless @options["Binmode"]
               if pt = buf.rindex(/\r\z/no)
-                buf = buf[0 ... pt]
                 rest = buf[pt .. -1]
+                buf = buf[0 ... pt]
               end
               buf.gsub!(/#{EOL}/no, "\n")
             end
