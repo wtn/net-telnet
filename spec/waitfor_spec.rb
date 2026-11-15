@@ -1,4 +1,5 @@
 require_relative '../lib/net/telnet'
+require_relative 'fixtures/fake_socket'
 
 describe "Net::Telnet#waitfor when Telnetmode is false and Binmode is false" do
   before(:each) do
@@ -61,5 +62,20 @@ describe "Net::Telnet#waitfor when Telnetmode is false and Binmode is true" do
     yielded = []
     @telnet.waitfor(/def/) { |c| yielded << c }.should == "abc\rdef"
     yielded.should == ["abc\r", "def"]
+  end
+end
+
+describe "Net::Telnet#waitfor when Telnetmode is false and Binmode is false, across calls" do
+  it "keeps a CR LF split across two waitfor calls" do
+    socket = FakeTelnetSocket.new("abc\r")
+    telnet = telnet_with(socket, "Telnetmode" => false)
+    telnet.waitfor(/abc/).should == "abc"
+    socket.feed("\ndef")
+    telnet.waitfor(/def/).should == "\ndef"
+  end
+
+  it "returns a trailing CR received just before EOF" do
+    socket = FakeTelnetSocket.new("abc\r", :eof)
+    telnet_with(socket, "Telnetmode" => false).waitfor(/zzz/).should == "abc\r"
   end
 end

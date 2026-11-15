@@ -40,6 +40,33 @@ describe "Net::Telnet#waitfor with default options" do
     receive(["abc\xff\xfa\x18", "\x01", "\xff\xf0x$ "]).should == ["abcx$ ", ""]
   end
 
+  it "keeps a telnet command split across two waitfor calls" do
+    socket = FakeTelnetSocket.new("login: \xff\xfd")
+    telnet = telnet_with(socket)
+    telnet.waitfor(/login: \z/n).should == "login: "
+    socket.feed("\x18$ ")
+    telnet.waitfor(/\$ \z/n).should == "$ "
+    socket.written.should == "\xff\xfc\x18"
+  end
+
+  it "keeps a CR LF split across two waitfor calls" do
+    socket = FakeTelnetSocket.new("a\r")
+    telnet = telnet_with(socket)
+    lambda { telnet.waitfor(/\r/n) }.should raise_error(Net::ReadTimeout)
+    socket.feed("\nb$ ")
+    telnet.waitfor(/\$ \z/n).should == "\nb$ "
+  end
+
+  it "returns a trailing CR received just before EOF" do
+    socket = FakeTelnetSocket.new("done\r", :eof)
+    telnet_with(socket).waitfor(/\$ \z/n).should == "done\r"
+  end
+
+  it "discards a partial command received just before EOF" do
+    socket = FakeTelnetSocket.new("done\xff\xfd", :eof)
+    telnet_with(socket).waitfor(/\$ \z/n).should == "done"
+  end
+
   it "returns nil and yields nil at EOF when no data was received" do
     socket = FakeTelnetSocket.new(:eof)
     yielded = []

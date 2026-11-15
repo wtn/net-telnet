@@ -295,6 +295,7 @@ module Net
       end
 
       @telnet_option = { "SGA" => false, "BINARY" => false }
+      @rest = ''
 
       if @options.has_key?("Output_log")
         @log = File.open(@options["Output_log"], 'a+')
@@ -557,7 +558,6 @@ module Net
 
       line = ''
       buf = ''
-      rest = ''
       until(prompt === line and not @sock.wait_readable(waittime))
         unless @sock.wait_readable(time_out)
           raise Net::ReadTimeout, "timed out while waiting for more data"
@@ -566,7 +566,7 @@ module Net
           c = @sock.readpartial(1024 * 1024)
           @dumplog.log_dump('<', c) if @options.has_key?("Dump_log")
           if @options["Telnetmode"]
-            c = rest + c
+            c = @rest + c
             sb = c.rindex(/#{IAC}#{SB}/no)
             se = c.rindex(/#{IAC}#{SE}/no)
             # a trailing IAC that is not the second half of an IAC IAC
@@ -574,24 +574,24 @@ module Net
                            #{IAC}[#{DO}#{DONT}#{WILL}#{WONT}]?\z/xno)
             if sb and (se.nil? or se < sb)
               buf = preprocess(c[0 ... sb])
-              rest = c[sb .. -1]
+              @rest = c[sb .. -1]
             elsif pt = (iac && iac.begin(0)) || c.rindex(/\r\z/no)
               buf = preprocess(c[0 ... pt])
-              rest = c[pt .. -1]
+              @rest = c[pt .. -1]
             else
               buf = preprocess(c)
-              rest = ''
+              @rest = ''
             end
           else
             # Not Telnetmode.
             #
             # We cannot use preprocess() on this data, because that
             # method makes some Telnetmode-specific assumptions.
-            buf = rest + c
-            rest = ''
+            buf = @rest + c
+            @rest = ''
             unless @options["Binmode"]
               if pt = buf.rindex(/\r\z/no)
-                rest = buf[pt .. -1]
+                @rest = buf[pt .. -1]
                 buf = buf[0 ... pt]
               end
               buf.gsub!(/#{EOL}/no, "\n")
@@ -601,6 +601,13 @@ module Net
           line += buf
           yield buf if block_given?
         rescue EOFError # End of file reached
+          # a held CR is data; a held partial command is discarded
+          if @rest == CR
+            @log.print(@rest) if @options.has_key?("Output_log")
+            line += @rest
+            yield @rest if block_given?
+          end
+          @rest = ''
           raise if fail_eof
           if line == ''
             line = nil
